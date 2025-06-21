@@ -1,9 +1,13 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import random
 import uuid
 from datetime import datetime
 import json
+import replicate
+import os
+import random
+import string
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'hide_and_seek_secret_key_2024'
@@ -30,6 +34,83 @@ class Game:
         self.max_rounds = 5
         self.current_round = 0
         self.prompt = ""
+        self.image_cache = []
+        self.folder_name =  ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+        self.folder_name = f"game_play_{self.folder_name}"
+        os.makedirs(self.folder_name, exist_ok=False)
+        print(f"Folder created: {self.folder_name}")
+        self.current_image_path = None
+        self.image_approved = False
+        self.hidden_word = self.generate_hidden_word()
+        self.current_image_sent = True  # Add this line - allows first image generation
+    
+    def generate_hidden_word(self):
+        """Generate a random hidden word for the game"""
+        words = ["hat", "flower", "bottle", "bunny", "diamond", "cat", "balloon", "pencil", "jacket" ]
+        return random.choice(words)
+    
+    def get_image_from_prompt(self):
+        """
+        Get an image from a prompt using the Flux Kontext Pro model.
+        """
+        print("running get_image_from_prompt")
+        print(self.prompt)
+        
+        if len(self.prompt) > 0:
+            input_data = {
+                "prompt": self.prompt,
+                "output_format": "png"
+            }
+            
+            is_edit = "[edit]" in self.prompt
+            
+            if is_edit and self.current_round > 0 and self.image_cache:
+                print(f"EDITING existing image for round {self.current_round}")
+                prev_img = open(self.image_cache[-1], "rb")
+                input_data["input_image"] = prev_img
+                user_prompt = self.prompt.replace("[edit]", "").strip()
+                input_data["prompt"] = user_prompt
+                # Don't increment round for edits
+            else:
+                print(f"CREATING new image, incrementing round from {self.current_round} to {self.current_round + 1}")
+                self.current_round += 1
+                
+            print(input_data)
+
+            output = replicate.run("black-forest-labs/flux-kontext-pro", input=input_data)
+            print("ran this")
+            
+            # Save the generated image with timestamp
+            output_filename = f"output_mod_{self.current_round}.png" 
+            impath = os.path.join(self.folder_name, output_filename)
+            with open(impath, "wb") as file:
+                file.write(output.read())
+            
+            # Save the prompt to a text file
+            prompt_file = os.path.join(self.folder_name, "prompts.txt")
+            with open(prompt_file, "a") as f:
+                f.write(f"Image {self.current_round}: {self.prompt}\n")
+            
+            if is_edit:
+                # For edits: REPLACE the last image in cache instead of adding
+                print(f"REPLACING last image in cache with edited version")
+                if self.image_cache:
+                    self.image_cache[-1] = impath  # Replace the last image
+                else:
+                    self.image_cache.append(impath)  # Fallback if cache is empty
+            else:
+                # For new images: ADD to cache
+                print(f"ADDING new image to cache")
+                self.image_cache.append(impath)
+            
+            self.current_image_path = impath
+            self.image_approved = False
+            
+            print(f"Image cache now contains: {self.image_cache}")
+            
+            return impath
+        return None
+
 
 
 @app.route('/')
@@ -168,21 +249,17 @@ def handle_start_game():
         'y': random.randint(50, 550)
     }
     
-    # Send positions to respective players
-    hider_data = {
+    print(f"Game started - Current round: {game.current_round}")
+    
+    # Send to all players in the room with current round
+    emit('game_started', {
         'hider_position': game.hider_position,
-        'start_time': game.start_time.isoformat(),
-        'max_time': game.max_time,
-        'current_round': game.current_round
-    }
-    seeker_data = {
         'seeker_position': game.seeker_position,
         'start_time': game.start_time.isoformat(),
         'max_time': game.max_time,
-        'current_round': game.current_round
-    }
-    
-    emit('game_started', hider_data, room=game_id)
+        'current_round': game.current_round,
+        'hidden_word': game.hidden_word
+    }, room=game_id)
 
 @socketio.on('hider_hidden')
 def handle_hider_hidden():
@@ -276,10 +353,16 @@ def handle_restart_game():
     game.start_time = None
     game.hider_hidden = False
     game.seeker_found = False
-    game.current_round = 0
+    game.current_round = 0  # Reset round
     game.prompt = ""
+    game.image_cache = []  # Clear image cache
+    game.current_image_path = None
+    game.image_approved = False
+    game.hidden_word = game.generate_hidden_word()  # Generate new hidden word
     
-    emit('game_restarted', room=game_id)
+    emit('game_restarted', {
+        'current_round': game.current_round
+    }, room=game_id)
 
 @socketio.on('seeker_sentence')
 def handle_seeker_sentence(data):
@@ -311,7 +394,244 @@ def handle_hider_prompt(data):
     game = games[game_id]
     # Only allow hider to set the prompt
     if game.hider == player_id:
+        # Safety check: add current_image_sent attribute if it doesn't exist
+        if not hasattr(game, 'current_image_sent'):
+            game.current_image_sent = True
+            print("Added missing current_image_sent attribute to existing game")
+        
         game.prompt = data.get('prompt', '')
+        print(f"Hider prompt: '{game.prompt}'")
+        print(f"Current image sent status: {game.current_image_sent}")
+        print(f"Current round: {game.current_round}")
+        
+        is_edit = "[edit]" in game.prompt
+        
+        # Check if hider is trying to generate a new image without sending the previous one
+        # Allow if: 1) No previous image exists, 2) Previous image was sent, 3) Using [edit]
+        if not game.current_image_sent and not is_edit and game.current_round > 0:
+            print("❌ ERROR: Hider must send current image to seeker or use [edit] to modify it")
+            emit('generation_blocked', {
+                'message': 'You must send your current image to the seeker first, or use [edit] to modify it!',
+                'requires_edit': True
+            }, room=request.sid)
+            return
+        
+        print(f"✓ Generation allowed. Is edit: {is_edit}")
+        image_path = game.get_image_from_prompt()
+        
+        if image_path:
+            print(f"Current round after generation: {game.current_round}")
+            
+            # Mark that an image has been generated but not sent
+            # For new images (not edits), mark as not sent
+            # For edits, keep the current sent status (could be False if editing before sending)
+            if not is_edit:
+                game.current_image_sent = False
+                print("New image generated - marked as not sent")
+            else:
+                print(f"Image edited - keeping current sent status: {game.current_image_sent}")
+            
+            # Send the generated image to the hider for preview
+            emit('image_generated', {
+                'image_path': image_path,
+                'is_edit': is_edit,
+                'current_round': game.current_round,
+                'can_generate_new': game.current_image_sent or is_edit  # Can generate if sent OR if this is an edit
+            }, room=request.sid)
+            
+            # Also update round for both players
+            emit('round_updated', {
+                'current_round': game.current_round
+            }, room=game_id)
+
+@socketio.on('approve_image')
+def handle_approve_image():
+    print("=== APPROVE IMAGE EVENT RECEIVED ===")
+    
+    player_id = session.get('player_id')
+    if not player_id or player_id not in players:
+        return
+
+    game_id = players[player_id]['game_id']
+    if game_id not in games:
+        return
+
+    game = games[game_id]
+    
+    # Safety check: add current_image_sent attribute if it doesn't exist
+    if not hasattr(game, 'current_image_sent'):
+        game.current_image_sent = False  # Assume not sent if missing
+        print("Added missing current_image_sent attribute to existing game")
+    
+    print(f"Current round: {game.current_round}")
+    print(f"Current image sent status before approval: {game.current_image_sent}")
+    
+    # Only allow hider to approve image
+    if game.hider == player_id and game.current_image_path:
+        print("✓ Hider authorized, approving image")
+        game.image_approved = True
+        game.current_image_sent = True  # Mark current round's image as sent
+        print(f"✓ Round {game.current_round} image marked as sent to seeker")
+        
+        # Send the approved image to the seeker
+        seeker_id = game.seeker
+        if seeker_id and seeker_id in players:
+            seeker_sid = players[seeker_id]['sid']
+            
+            image_data = {
+                'image_path': game.current_image_path,
+                'prompt': game.prompt,
+                'current_round': game.current_round
+            }
+            print(f"Sending image data to seeker: {image_data}")
+            
+            emit('image_approved', image_data, room=seeker_sid)
+            print("✓ Image approved event sent to seeker")
+        else:
+            print("❌ ERROR: Seeker not found or no session ID")
+        
+        # Notify hider that image was sent
+        emit('image_sent', {
+            'message': f'Round {game.current_round} image sent to seeker!',
+            'current_round': game.current_round,
+            'can_generate_new': True  # Now hider can generate new images for next round
+        }, room=request.sid)
+        
+        # Update round display for both players
+        emit('round_updated', {
+            'current_round': game.current_round
+        }, room=game_id)
+        
+        print("✓ Confirmation sent to hider - ready for next round")
+    else:
+        print("❌ ERROR: Not authorized or no current image path")
+        print(f"Is hider? {game.hider == player_id}")
+        print(f"Has current image? {bool(game.current_image_path)}")
+
+# Add route to serve images
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    print(f"=== IMAGE REQUEST DEBUG ===")
+    print(f"Requesting image: {filename}")
+    print(f"Number of games: {len(games)}")
+    
+    # Find the game that contains this image
+    for game_id, game in games.items():
+        print(f"\nChecking game {game_id}:")
+        print(f"  Folder: {game.folder_name}")
+        print(f"  Image cache: {game.image_cache}")
+        
+        # Check if any image in the cache contains this filename
+        for image_path in game.image_cache:
+            print(f"  Checking path: {image_path}")
+            if filename in image_path:
+                print(f"  ✓ MATCH FOUND! Serving from {game.folder_name}")
+                return send_from_directory(game.folder_name, filename)
+    
+    print(f"❌ Image {filename} not found in any game")
+    return "Image not found", 404
+
+@app.route('/api/get_image_cache/<game_id>')
+def get_image_cache(game_id):
+    print(f"=== GET IMAGE CACHE REQUEST ===")
+    print(f"Game ID: {game_id}")
+    
+    if game_id not in games:
+        print("❌ Game not found")
+        return jsonify({'error': 'Game not found'}), 404
+    
+    game = games[game_id]
+    print(f"Image cache: {game.image_cache}")
+    
+    # Convert full paths to just filenames for the frontend
+    image_filenames = [path.split('/')[-1] for path in game.image_cache]
+    print(f"Image filenames: {image_filenames}")
+    
+    return jsonify({
+        'images': image_filenames,
+        'total': len(image_filenames)
+    })
+
+@socketio.on('submit_guess')
+def handle_submit_guess(data):
+    print("=== GUESS SUBMITTED ===")
+    
+    player_id = session.get('player_id')
+    if not player_id or player_id not in players:
+        print("❌ ERROR: Player ID not found")
+        return
+
+    game_id = players[player_id]['game_id']
+    if game_id not in games:
+        print("❌ ERROR: Game not found")
+        return
+
+    game = games[game_id]
+    
+    # Only allow seeker to submit guess
+    if game.seeker != player_id:
+        print("❌ ERROR: Only seeker can submit guess")
+        return
+    
+    guess = data.get('guess', '').strip().lower()
+    hidden_word = game.hidden_word.lower()
+    
+    print(f"Seeker's guess: '{guess}'")
+    print(f"Hidden word: '{hidden_word}'")
+    
+    if guess == hidden_word:
+        print("✓ CORRECT GUESS! Seeker wins!")
+        # Seeker guessed correctly
+        game.game_over = True
+        game.winner = 'seeker'
+        
+        # Send win message to seeker
+        seeker_id = game.seeker
+        if seeker_id and seeker_id in players:
+            seeker_sid = players[seeker_id]['sid']
+            emit('guess_result', {
+                'correct': True,
+                'message': 'You Win!',
+                'hidden_word': game.hidden_word
+            }, room=seeker_sid)
+        
+        # Send lose message to hider
+        hider_id = game.hider
+        if hider_id and hider_id in players:
+            hider_sid = players[hider_id]['sid']
+            emit('guess_result', {
+                'correct': False,
+                'message': 'You Lose!',
+                'hidden_word': game.hidden_word
+            }, room=hider_sid)
+            
+    else:
+        print("❌ WRONG GUESS! Hider wins!")
+        # Seeker guessed wrong
+        game.game_over = True
+        game.winner = 'hider'
+        
+        # Send lose message to seeker with correct word
+        seeker_id = game.seeker
+        if seeker_id and seeker_id in players:
+            seeker_sid = players[seeker_id]['sid']
+            emit('guess_result', {
+                'correct': False,
+                'message': f'You Lose! The word was {game.hidden_word}',
+                'hidden_word': game.hidden_word
+            }, room=seeker_sid)
+        
+        # Send win message to hider
+        hider_id = game.hider
+        if hider_id and hider_id in players:
+            hider_sid = players[hider_id]['sid']
+            emit('guess_result', {
+                'correct': True,
+                'message': 'Great job hiding ;)',
+                'hidden_word': game.hidden_word
+            }, room=hider_sid)
+    
+    print(f"Game over. Winner: {game.winner}")
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=8080)

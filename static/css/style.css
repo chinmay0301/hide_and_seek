@@ -101,6 +101,26 @@ body {
     font-size: 0.9rem;
 }
 
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    transform: translateY(-2px);
+}
+
 .input-field {
     width: 100%;
     padding: 12px;
@@ -206,7 +226,7 @@ body {
 
 .role-option h3 {
     color: #667eea;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
 }
 
 .role-option p {
@@ -225,7 +245,7 @@ body {
     background: white;
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     margin-bottom: 20px;
     display: flex;
     justify-content: space-between;
@@ -234,6 +254,7 @@ body {
 
 .game-header h1 {
     color: #667eea;
+    margin: 0;
 }
 
 .game-info {
@@ -243,16 +264,16 @@ body {
 }
 
 .game-info span {
-    padding: 8px 16px;
     background: #f8f9fa;
+    padding: 8px 16px;
     border-radius: 20px;
-    font-size: 0.9rem;
     font-weight: 600;
+    color: #667eea;
 }
 
 .game-area {
     display: grid;
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 1fr 400px;
     gap: 20px;
 }
 
@@ -260,7 +281,7 @@ body {
     position: relative;
     background: white;
     border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     overflow: hidden;
 }
 
@@ -279,6 +300,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 10;
 }
 
 .overlay-content {
@@ -286,7 +308,6 @@ body {
     padding: 40px;
     border-radius: 15px;
     text-align: center;
-    max-width: 400px;
 }
 
 .overlay-content h2 {
@@ -304,7 +325,7 @@ body {
     background: white;
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
 .control-panel h3, .chat-panel h3 {
@@ -313,13 +334,13 @@ body {
 }
 
 .hint {
-    padding: 10px;
     background: #fff3cd;
     border: 1px solid #ffeaa7;
-    border-radius: 5px;
-    margin-top: 10px;
-    font-weight: 600;
     color: #856404;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-weight: 600;
 }
 
 .chat-messages {
@@ -334,10 +355,8 @@ body {
 
 .chat-message {
     margin-bottom: 8px;
-    padding: 8px;
-    background: white;
-    border-radius: 5px;
-    border-left: 3px solid #667eea;
+    padding: 5px 0;
+    border-bottom: 1px solid #e9ecef;
 }
 
 .chat-input {
@@ -349,15 +368,74 @@ body {
     flex: 1;
 }
 
+/* Image functionality styles */
+.image-preview, .image-display {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.image-preview img, .image-display img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#imageActions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+#editPromptContainer, #imagePreviewContainer {
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+#seekerImageContainer {
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #007bff;
+    border-radius: 8px;
+    background-color: #e7f3ff;
+}
+
+#imagePrompt {
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 10px;
+}
+
+.round-info {
+    background: #e7f3ff;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #b3d9ff;
+}
+
+.round-info h4 {
+    color: #0056b3;
+    margin: 0;
+}
+
 /* Error Page Styles */
 .error-section {
     background: white;
     padding: 40px;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    max-width: 600px;
+    margin: 100px auto;
     text-align: center;
-    max-width: 500px;
-    margin: 0 auto;
 }
 
 .error-section h1 {
@@ -366,11 +444,10 @@ body {
 }
 
 .error-section p {
-    margin-bottom: 30px;
     color: #666;
+    margin-bottom: 20px;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .game-options {
         grid-template-columns: 1fr;
@@ -387,11 +464,46 @@ body {
     .game-header {
         flex-direction: column;
         gap: 15px;
-        text-align: center;
     }
     
     .game-info {
         flex-direction: column;
         gap: 10px;
     }
+}
+
+/* Add this to your existing CSS */
+
+.guess-input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.guess-input-container .input-field {
+    flex: 1;
+}
+
+#guessPanel {
+    border: 2px solid #28a745;
+    background-color: #f8fff8;
+}
+
+#guessPanel h3 {
+    color: #28a745;
+}
+
+#submitGuessBtn {
+    background-color: #28a745;
+    color: white;
+    font-weight: bold;
+}
+
+#submitGuessBtn:hover {
+    background-color: #218838;
+}
+
+#submitGuessBtn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
 } 

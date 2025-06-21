@@ -34,13 +34,30 @@
                     <h3>Game Controls</h3>
                     <div id="hiderControls" style="display: none;">
                         <p>Hider : Input a prompt to create an image that includes the hidden object and the seeker's prompt. Make sure to be sneaky about the hidden object!</p>
-                        <button id="hiddenBtn" class="btn btn-secondary">I'm Hidden!</button>
+                        
+                        <!-- Toggle button for hidden word -->
+                        <button id="hiddenBtn" class="btn btn-secondary">Show Hidden Word</button>
+                        
+                        <!-- Hidden word display -->
+                        <div id="hiddenWordContainer" style="display: none; margin: 10px 0; padding: 15px; background-color: #f8f9fa; border: 2px solid #667eea; border-radius: 8px;">
+                            <h4 style="color: #667eea; margin-bottom: 10px;">🎯 Your Hidden Word:</h4>
+                            <p id="hiddenWordText" style="font-size: 18px; font-weight: bold; color: #333; margin: 0;"></p>
+                            <p style="font-size: 12px; color: #666; margin-top: 5px;">Hide this object in your image!</p>
+                        </div>
+                        
                         <div id="displaySentence" style="display:none;">
                             <strong>Seeker says:</strong> <span id="sentenceText"></span>
                         </div>
                         <div id="hiderPromptContainer">
-                            <input type="text" id="hiderPrompt" placeholder="Enter a sentence for the seeker" class="input-field">
+                            <input type="text" id="hiderPrompt" placeholder="Enter a prompt that has BOTH the hidden word and the seeker's prompt" class="input-field">
                             <button id="sendPromptBtn" class="btn btn-primary">Send Sentence</button>
+                        </div>
+                        
+                        <!-- Simplified approval section - just the OK button, no image preview -->
+                        <div id="imageApprovalContainer" style="display: none;">
+                            <h4>Image Generated!</h4>
+                            <p>Your image has been created. Send it to the seeker?</p>
+                            <button id="approveImageBtn" class="btn btn-success">OK - Send to Seeker</button>
                         </div>
                     </div>
                     <div id="seekerControls" style="display: none;">
@@ -49,6 +66,15 @@
                         <div id="sentenceInputContainer" style="display:none;">
                             <input type="text" id="seekerSentence" placeholder="Enter a sentence for the hider" class="input-field">
                             <button id="sendSentenceBtn" class="btn btn-primary">Send Sentence</button>
+                        </div>
+                        
+                        <!-- Image display section for seeker -->
+                        <div id="seekerImageContainer" style="display: none;">
+                            <h4>Hider's Image:</h4>
+                            <div id="seekerImage" class="image-display">
+                                <img id="seekerImageElement" src="" alt="Hider's image" style="max-width: 100%; height: auto;">
+                            </div>
+                            <p id="imagePrompt" style="margin-top: 10px; font-style: italic;"></p>
                         </div>
                     </div>
                     <div id="waitingControls">
