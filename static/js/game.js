@@ -2,7 +2,7 @@
 let socket;
 let canvas;
 let ctx;
-let playerRole;
+//let playerRole;
 let playerName;
 let gameStarted = false;
 let gameOver = false;
@@ -13,6 +13,7 @@ let startTime = null;
 let maxTime = 300; // 5 minutes
 let timerInterval;
 let proximityHint = '';
+const playerRole = localStorage.getItem('playerRole');
 
 // Initialize game
 document.addEventListener('DOMContentLoaded', function() {
@@ -27,8 +28,76 @@ document.addEventListener('DOMContentLoaded', function() {
     setupGameControls();
     setupCanvasEvents();
     
+    // Sentence input elements
+    const sentenceInputContainer = document.getElementById('sentenceInputContainer');
+    const seekerSentence = document.getElementById('seekerSentence');
+    const sendSentenceBtn = document.getElementById('sendSentenceBtn');
+    const displaySentence = document.getElementById('displaySentence');
+    const sentenceText = document.getElementById('sentenceText');
+
+    // Hider prompt elements
+    const hiderPromptContainer = document.getElementById('hiderPromptContainer');
+    const hiderPrompt = document.getElementById('hiderPrompt');
+    const sendPromptBtn = document.getElementById('sendPromptBtn');
+
+    if (sendPromptBtn) {
+        sendPromptBtn.addEventListener('click', function() {
+            const prompt = hiderPrompt.value.trim();
+            if (prompt) {
+                socket.emit('hider_prompt', { prompt });
+                hiderPrompt.value = '';
+            }
+        });
+    }
+
     // Start rendering
     requestAnimationFrame(gameLoop);
+
+    // Show input for seeker when game starts
+    socket.on('game_started', function(data) {
+        // ...existing code...
+        if (playerRole === 'seeker') {
+            sentenceInputContainer.style.display = 'block';
+            hiderPromptContainer.style.display = 'none';
+        } else {
+            sentenceInputContainer.style.display = 'none';
+            hiderPromptContainer.style.display = 'block';
+        }
+        displaySentence.style.display = 'none';
+        // ...existing code...
+    });
+
+    // Send sentence to server
+    if (sendSentenceBtn) {
+        sendSentenceBtn.addEventListener('click', function() {
+            const sentence = seekerSentence.value.trim();
+            if (sentence) {
+                socket.emit('seeker_sentence', { sentence });
+                seekerSentence.value = '';
+                // sentenceInputContainer.style.display = 'none'; // REMOVE or COMMENT THIS LINE
+            }
+        });
+    }
+
+    // Send prompt as hider
+    if (sendPromptBtn) {
+        sendPromptBtn.addEventListener('click', function() {
+            const prompt = hiderPrompt.value.trim();
+            if (prompt) {
+                socket.emit('hider_prompt', { prompt });
+                hiderPrompt.value = '';
+                hiderPromptContainer.style.display = 'none';
+            }
+        });
+    }
+
+    // Receive sentence as hider
+    socket.on('show_sentence', function(data) {
+        if (playerRole === 'hider') {
+            sentenceText.textContent = data.sentence;
+            displaySentence.style.display = 'block';
+        }
+    });
 });
 
 function setupSocketEvents() {
@@ -69,6 +138,11 @@ function setupSocketEvents() {
             document.getElementById('seekerControls').style.display = 'block';
             document.getElementById('waitingControls').style.display = 'none';
             updateGameStatus('Click on the map to move and search for the hider');
+        }
+
+        if (data.current_round !== undefined) {
+            document.getElementById('roundInfo').style.display = 'block';
+            document.getElementById('roundNumber').textContent = data.current_round;
         }
         
         startTimer();
@@ -336,4 +410,4 @@ function drawWaitingScreen() {
     
     ctx.font = '16px Arial';
     ctx.fillText('Click "Start Game" when both players are ready', canvas.width / 2, canvas.height / 2 + 40);
-} 
+}

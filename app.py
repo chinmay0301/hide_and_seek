@@ -24,9 +24,13 @@ class Game:
         self.game_over = False
         self.winner = None
         self.start_time = None
-        self.max_time = 300  # 5 minutes
+        self.max_time = 600  # 10 minutes
         self.hider_hidden = False
         self.seeker_found = False
+        self.max_rounds = 5
+        self.current_round = 0
+        self.prompt = ""
+
 
 @app.route('/')
 def index():
@@ -168,12 +172,14 @@ def handle_start_game():
     hider_data = {
         'hider_position': game.hider_position,
         'start_time': game.start_time.isoformat(),
-        'max_time': game.max_time
+        'max_time': game.max_time,
+        'current_round': game.current_round
     }
     seeker_data = {
         'seeker_position': game.seeker_position,
         'start_time': game.start_time.isoformat(),
-        'max_time': game.max_time
+        'max_time': game.max_time,
+        'current_round': game.current_round
     }
     
     emit('game_started', hider_data, room=game_id)
@@ -270,8 +276,42 @@ def handle_restart_game():
     game.start_time = None
     game.hider_hidden = False
     game.seeker_found = False
+    game.current_round = 0
+    game.prompt = ""
     
     emit('game_restarted', room=game_id)
 
+@socketio.on('seeker_sentence')
+def handle_seeker_sentence(data):
+    player_id = session.get('player_id')
+    if not player_id or player_id not in players:
+        return
+
+    game_id = players[player_id]['game_id']
+    if game_id not in games:
+        return
+
+    game = games[game_id]
+    # Find hider's session id
+    hider_id = game.hider
+    if hider_id and hider_id in players:
+        hider_sid = players[hider_id]['sid']
+        emit('show_sentence', {'sentence': data['sentence']}, room=hider_sid)
+
+@socketio.on('hider_prompt')
+def handle_hider_prompt(data):
+    player_id = session.get('player_id')
+    if not player_id or player_id not in players:
+        return
+
+    game_id = players[player_id]['game_id']
+    if game_id not in games:
+        return
+
+    game = games[game_id]
+    # Only allow hider to set the prompt
+    if game.hider == player_id:
+        game.prompt = data.get('prompt', '')
+
 if __name__ == '__main__':
-    socketio.run(app, debug=True, host='0.0.0.0', port=8080) 
+    socketio.run(app, debug=True, host='0.0.0.0', port=8080)

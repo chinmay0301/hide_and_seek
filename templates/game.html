@@ -33,12 +33,23 @@
                 <div class="control-panel">
                     <h3>Game Controls</h3>
                     <div id="hiderControls" style="display: none;">
-                        <p>Click on the map to hide, then click "I'm Hidden!"</p>
+                        <p>Hider : Input a prompt to create an image that includes the hidden object and the seeker's prompt. Make sure to be sneaky about the hidden object!</p>
                         <button id="hiddenBtn" class="btn btn-secondary">I'm Hidden!</button>
+                        <div id="displaySentence" style="display:none;">
+                            <strong>Seeker says:</strong> <span id="sentenceText"></span>
+                        </div>
+                        <div id="hiderPromptContainer">
+                            <input type="text" id="hiderPrompt" placeholder="Enter a sentence for the seeker" class="input-field">
+                            <button id="sendPromptBtn" class="btn btn-primary">Send Sentence</button>
+                        </div>
                     </div>
                     <div id="seekerControls" style="display: none;">
-                        <p>Click on the map to move and search for the hider</p>
+                        <p>Seeker : Input an object or a scene description for the hider to hide the object in!</p>
                         <div id="proximityHint" class="hint"></div>
+                        <div id="sentenceInputContainer" style="display:none;">
+                            <input type="text" id="seekerSentence" placeholder="Enter a sentence for the hider" class="input-field">
+                            <button id="sendSentenceBtn" class="btn btn-primary">Send Sentence</button>
+                        </div>
                     </div>
                     <div id="waitingControls">
                         <p>Waiting for other player to join...</p>
@@ -54,6 +65,10 @@
                         <button id="sendChatBtn" class="btn btn-small">Send</button>
                     </div>
                 </div>
+
+                <div id="roundInfo" class="round-info" style="display: none;">
+                    <h4>Round: <span id="roundNumber"></span></h4>
+                </div>
             </div>
         </div>
     </div>
@@ -64,4 +79,4 @@
     </script>
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
-</html> 
+</html>

@@ -55,6 +55,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (response.ok) {
+                // Store playerRole in localStorage
+                localStorage.setItem('playerRole', selectedRole);
                 // Redirect to game page
                 window.location.href = data.redirect;
             } else {
@@ -72,4 +74,4 @@ document.addEventListener('DOMContentLoaded', function() {
             joinBtn.click();
         }
     });
-}); 
+});
