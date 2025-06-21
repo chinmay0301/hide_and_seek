@@ -1,6 +1,6 @@
 # 🎮 Hide and Seek Game
 
-A real-time 2-player hide and seek game built with Python Flask and WebSocket technology. Players can create games, join via links, and play together in real-time through their browsers.
+A real-time 2-player game inspired by hide-and-seek and find Waldo. The game is built with Python Flask and WebSocket technology and uses Flux-Konnect for image generation. Players can create games, join via links, and play together in real-time through their browsers.
 
 ## Features
 
@@ -8,11 +8,13 @@ A real-time 2-player hide and seek game built with Python Flask and WebSocket te
 - **Beautiful modern UI** with responsive design
 - **Game state management** with automatic cleanup
 - **Chat system** for player communication
-- **Proximity hints** to help seekers find hiders
-- **Timer system** with 5-minute game duration
+- **Timer system** with 10-minute game duration
 - **Cross-platform** - works on desktop and mobile browsers
 
 ## How to Play
+
+### Game objective
+This is a word guessing game with 2 players - a hider and seeker. Hider aims to hide the word from the seeker while seeker tries to seek it out.
 
 ### Game Setup
 1. **Player 1 (Game Creator)**: 
@@ -27,11 +29,11 @@ A real-time 2-player hide and seek game built with Python Flask and WebSocket te
    - Both players will be redirected to the game page
 
 ### Gameplay
-- **Hider**: Click on the map to choose your hiding spot, then click "I'm Hidden!"
-- **Seeker**: Click on the map to move around and search for the hider
-- **Proximity System**: The seeker gets hints ("Very close!", "Getting warmer...", "Cold...") based on distance to the hider
-- **Time Limit**: 5 minutes - if the seeker doesn't find the hider in time, the hider wins!
-- **Chat**: Use the chat panel to communicate with your opponent
+- Seeker : Seeker gives a description of a scene which hider will use to generate an image with the hidden object. The scene description can be as detailed or vague as desired. Example - a snow capped mountain.
+- Hider : Once hider receives the seeker's prompt, they will devise their own prompt for an image. This prompt should fulfill the seeker's scene description and also contain the hidden object. For example, if the hidden object is bottle, for the above seeker's prompt, the hider's prompt can be - "an image of a mountaineer climbing a snow capped mountain. The mountaineer has a red backpack with a bunny keychain and is drinking water out of a bottle. He is wearing sunglasses. " 
+The hider can edit this image sequentially with more prompts until they are satisfied and then send this image to the seeker. To make an edit to the existing image, enter the prompt with [edit] as the first word
+- Seeker - The seeker then sees the generated image and either makes a guess for the hidden object or gives another scene description. The process then continues until time runs out or seeker makes the right guess.
+For example, based on the image, the seeker could give another prompt as - image of a forest without any people. The hider's challenge is to now again generate an image with the bottle but also make it such that it obfuscates it from the seeker. So, for example, the hider could create an object with a forest with bunnies hopping aroung and trash lying around which includes thrown away bottles and sunglasses.
 
 ## Installation & Setup
 
@@ -80,24 +82,11 @@ A real-time 2-player hide and seek game built with Python Flask and WebSocket te
 2. Use your public IP address instead of localhost
 3. Both players can access the game from anywhere on the internet
 
-## Game Rules
-
-- **Objective**: The seeker must find the hider before time runs out
-- **Time Limit**: 5 minutes per round
-- **Detection**: Seeker wins if they get within 50 pixels of the hider
-- **Hints**: Seeker receives proximity hints based on distance:
-  - "Very close!" (within 100 pixels)
-  - "Getting warmer..." (within 200 pixels)
-  - "Cold..." (within 300 pixels)
-- **Winning**: 
-  - Seeker wins by finding the hider
-  - Hider wins if time runs out
-- **Restart**: Both players can restart the game after it ends
 
 ## Technical Details
 
 ### Architecture
-- **Backend**: Flask with Flask-SocketIO for real-time communication
+- **Backend**: Flask with Flask-SocketIO for real-time communication. Flux-kontext model is run on replicate for image generation.
 - **Frontend**: HTML5 Canvas for game rendering, vanilla JavaScript
 - **Communication**: WebSocket for real-time updates
 - **Styling**: Modern CSS with responsive design
@@ -155,16 +144,6 @@ To run with debug information:
 export FLASK_ENV=development
 python app.py
 ```
-
-## Contributing
-
-Feel free to fork this project and add new features like:
-- Different game modes
-- Multiple hiders/seekers
-- Power-ups and special abilities
-- Sound effects and music
-- Leaderboards and statistics
-- Custom maps and obstacles
 
 ## License
 
