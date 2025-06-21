@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hide and Seek Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>🎮 Hide and Seek</h1>
+            <div class="game-info">
+                <span id="playerInfo"></span>
+                <span id="gameStatus">Waiting for players...</span>
+                <span id="timer">Time: 5:00</span>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="game-canvas-container">
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
+                <div id="gameOverlay" class="game-overlay" style="display: none;">
+                    <div class="overlay-content">
+                        <h2 id="gameResult"></h2>
+                        <p id="gameMessage"></p>
+                        <button id="restartBtn" class="btn btn-primary">Play Again</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <div class="control-panel">
+                    <h3>Game Controls</h3>
+                    <div id="hiderControls" style="display: none;">
+                        <p>Click on the map to hide, then click "I'm Hidden!"</p>
+                        <button id="hiddenBtn" class="btn btn-secondary">I'm Hidden!</button>
+                    </div>
+                    <div id="seekerControls" style="display: none;">
+                        <p>Click on the map to move and search for the hider</p>
+                        <div id="proximityHint" class="hint"></div>
+                    </div>
+                    <div id="waitingControls">
+                        <p>Waiting for other player to join...</p>
+                        <button id="startGameBtn" class="btn btn-primary" style="display: none;">Start Game</button>
+                    </div>
+                </div>
+
+                <div class="chat-panel">
+                    <h3>Game Chat</h3>
+                    <div id="chatMessages" class="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="chatInput" placeholder="Type a message..." class="input-field">
+                        <button id="sendChatBtn" class="btn btn-small">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        const gameId = '{{ game_id }}';
+    </script>
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html> 

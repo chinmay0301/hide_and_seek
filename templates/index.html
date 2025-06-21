@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hide and Seek Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="welcome-section">
+            <h1>🎮 Hide and Seek Game</h1>
+            <p>Create a game and share the link with your friend to start playing!</p>
+        </div>
+
+        <div class="game-options">
+            <div class="option-card">
+                <h2>Create New Game</h2>
+                <p>Start a new game and get a link to share</p>
+                <button id="createGameBtn" class="btn btn-primary">Create Game</button>
+            </div>
+
+            <div class="option-card">
+                <h2>Join Existing Game</h2>
+                <p>Enter a game ID to join an existing game</p>
+                <div class="join-form">
+                    <input type="text" id="gameIdInput" placeholder="Enter Game ID" class="input-field">
+                    <button id="joinGameBtn" class="btn btn-secondary">Join Game</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="gameCreated" class="game-info" style="display: none;">
+            <h3>Game Created Successfully!</h3>
+            <p>Share this link with your friend:</p>
+            <div class="link-container">
+                <input type="text" id="gameLink" readonly class="input-field">
+                <button id="copyLinkBtn" class="btn btn-small">Copy</button>
+            </div>
+            <p class="game-id">Game ID: <span id="gameIdDisplay"></span></p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+</body>
+</html> 
