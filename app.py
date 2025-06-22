@@ -46,7 +46,7 @@ class Game:
     
     def generate_hidden_word(self):
         """Generate a random hidden word for the game"""
-        words = ["pencil"] #["hat", "flower", "bottle", "bunny", "diamond", "cat", "balloon", "pencil", "jacket" ]
+        words = ["hat", "flower", "bottle", "bunny", "diamond", "cat", "balloon", "pencil", "jacket" ]
         return random.choice(words)
     
     def get_image_from_prompt(self):
