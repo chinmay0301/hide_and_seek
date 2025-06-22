@@ -101,9 +101,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Receive sentence as hider
     socket.on('show_sentence', function(data) {
+        console.log('=== SHOW SENTENCE EVENT ===');
+        console.log('Received sentence:', data.sentence);
+        console.log('Player role:', playerRole);
+        
         if (playerRole === 'hider') {
-            sentenceText.textContent = data.sentence;
-            displaySentence.style.display = 'block';
+            console.log('✓ Hider role confirmed');
+            
+            const sentenceTextElement = document.getElementById('sentenceText');
+            const displaySentenceElement = document.getElementById('displaySentence');
+            
+            console.log('sentenceText element:', sentenceTextElement);
+            console.log('displaySentence element:', displaySentenceElement);
+            
+            if (sentenceTextElement && displaySentenceElement) {
+                console.log('✓ Elements found, updating display');
+                sentenceTextElement.textContent = data.sentence;
+                displaySentenceElement.style.display = 'block';
+                console.log('✓ Sentence updated successfully');
+            } else {
+                console.error('❌ Elements not found!');
+            }
+        } else {
+            console.log('Not hider role, ignoring sentence');
         }
     });
 

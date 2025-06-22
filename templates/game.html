@@ -63,7 +63,7 @@
                     <div id="seekerControls" style="display: none;">
                         <p>Seeker : Input an object or a scene description for the hider to hide the object in!</p>
                         <div id="proximityHint" class="hint"></div>
-                        <div id="sentenceInputContainer" style="display:none;">
+                        <div id="sentenceInputContainer">
                             <input type="text" id="seekerSentence" placeholder="Enter a sentence for the hider" class="input-field">
                             <button id="sendSentenceBtn" class="btn btn-primary">Send Sentence</button>
                         </div>
@@ -81,6 +81,18 @@
                         <p>Waiting for other player to join...</p>
                         <button id="startGameBtn" class="btn btn-primary" style="display: none;">Start Game</button>
                     </div>
+                </div>
+
+                <!-- Add this NEW guess panel after the main control-panel and before the chat-panel -->
+                <div class="control-panel" id="guessPanel" style="display: none;">
+                    <h3>Enter your Guess!</h3>
+                    <div class="guess-input-container">
+                        <input type="text" id="guessInput" placeholder="What object is hidden in the image?" class="input-field">
+                        <button id="submitGuessBtn" class="btn btn-success">Submit Guess</button>
+                    </div>
+                    <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                        Look carefully at the images and guess what object the hider is trying to hide!
+                    </p>
                 </div>
 
                 <div class="chat-panel">
