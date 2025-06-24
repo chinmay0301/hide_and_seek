@@ -49,7 +49,10 @@ For example, based on the image, the seeker could give another prompt as - image
    ```bash
    pip install -r requirements.txt
    ```
-
+3. **Export the Replicate api token**
+   ```
+   export REPLICATE_API_TOKEN=<Your API Token>
+   ```
 3. **Run the game server**:
    ```bash
    python app.py

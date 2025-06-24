@@ -3,3 +3,5 @@ Flask-SocketIO==5.3.6
 python-socketio==5.8.0
 python-engineio==4.7.1
 eventlet==0.33.3 
+pyngrok==7.2.11
+replicate==1.0.7

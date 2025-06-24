@@ -10,7 +10,7 @@ let hiderPosition = null;
 let seekerPosition = null;
 let playerPosition = null;
 let startTime = null;
-let maxTime = 300; // 5 minutes
+let maxTime = 1500; // 25 minutes
 let timerInterval;
 let proximityHint = '';
 const playerRole = localStorage.getItem('playerRole');
@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const hiderPromptContainer = document.getElementById('hiderPromptContainer');
     const hiderPrompt = document.getElementById('hiderPrompt');
     const sendPromptBtn = document.getElementById('sendPromptBtn');
+
+
 
     if (sendPromptBtn) {
         sendPromptBtn.addEventListener('click', function() {
@@ -433,6 +435,8 @@ function setupSocketEvents() {
         addChatMessage(`System: Game Over! ${data.message}`);
         addChatMessage(`System: The hidden word was: ${data.hidden_word}`);
     });
+
+
 }
 
 function setupGameControls() {
@@ -719,11 +723,7 @@ function drawGameElements() {
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Draw "YOU" label
-        ctx.fillStyle = '#333';
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('YOU', hiderPosition.x, hiderPosition.y + 35);
+        // Draw "YOU" label - REMOVED
     }
     
     // Draw seeker position ON TOP of images with high visibility
@@ -760,8 +760,7 @@ function drawGameElements() {
         ctx.lineWidth = 3;
         
         if (playerRole === 'seeker') {
-            ctx.strokeText('YOU', seekerPosition.x, seekerPosition.y + 4);
-            ctx.fillText('YOU', seekerPosition.x, seekerPosition.y + 4);
+            // "YOU" label removed
         } else {
             ctx.strokeText('SEEKER', seekerPosition.x, seekerPosition.y + 4);
             ctx.fillText('SEEKER', seekerPosition.x, seekerPosition.y + 4);

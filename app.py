@@ -8,6 +8,8 @@ import replicate
 import os
 import random
 import string
+from pyngrok import ngrok
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'hide_and_seek_secret_key_2024'
@@ -28,16 +30,17 @@ class Game:
         self.game_over = False
         self.winner = None
         self.start_time = None
-        self.max_time = 600  # 10 minutes
+        self.max_time = 1800  # 30 minutes
         self.hider_hidden = False
         self.seeker_found = False
         self.max_rounds = 5
         self.current_round = 0
         self.prompt = ""
+        self.seeker_prompt = ""
         self.image_cache = []
         self.folder_name =  ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        self.folder_name = f"game_play_{self.folder_name}"
-        os.makedirs(self.folder_name, exist_ok=False)
+        self.folder_name = f"gameplays/game_play_{self.folder_name}"
+        os.makedirs(self.folder_name, exist_ok=True)
         print(f"Folder created: {self.folder_name}")
         self.current_image_path = None
         self.image_approved = False
@@ -89,7 +92,7 @@ class Game:
             # Save the prompt to a text file
             prompt_file = os.path.join(self.folder_name, "prompts.txt")
             with open(prompt_file, "a") as f:
-                f.write(f"Image {self.current_round}: {self.prompt}\n")
+                f.write(f"Hider {self.current_round}: {self.prompt}\nSeeker {self.current_round}: {self.seeker_prompt}\n")
             
             if is_edit:
                 # For edits: REPLACE the last image in cache instead of adding
@@ -236,6 +239,7 @@ def handle_start_game():
         emit('error', {'message': 'Need both hider and seeker to start'})
         return
     
+
     game.game_started = True
     game.start_time = datetime.now()
     
@@ -355,6 +359,7 @@ def handle_restart_game():
     game.seeker_found = False
     game.current_round = 0  # Reset round
     game.prompt = ""
+    game.seeker_prompt = ""
     game.image_cache = []  # Clear image cache
     game.current_image_path = None
     game.image_approved = False
@@ -377,6 +382,7 @@ def handle_seeker_sentence(data):
     game = games[game_id]
     # Find hider's session id
     hider_id = game.hider
+    game.seeker_prompt = data.get('sentence', '')
     if hider_id and hider_id in players:
         hider_sid = players[hider_id]['sid']
         emit('show_sentence', {'sentence': data['sentence']}, room=hider_sid)
@@ -633,5 +639,9 @@ def handle_submit_guess(data):
     
     print(f"Game over. Winner: {game.winner}")
 
+
 if __name__ == '__main__':
+    # ngrok.set_auth_token('2ysO3aRPEly7aFCwXN5dukHjvou_6bggWr5rwF87LYjcYG9jt')
+    # public_url = ngrok.connect(8080)
+    # print(f" * ngrok tunnel: {public_url}")
     socketio.run(app, debug=True, host='0.0.0.0', port=8080)
