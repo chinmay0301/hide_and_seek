@@ -479,12 +479,17 @@ function setupGameControls() {
         socket.emit('restart_game');
     });
 
-    sendChatBtn.addEventListener('click', sendChatMessage);
-    chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendChatMessage();
-        }
-    });
+    // Only add chat event listeners if elements exist
+    if (sendChatBtn) {
+        sendChatBtn.addEventListener('click', sendChatMessage);
+    }
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+    }
 
     // Add guess submission functionality
     const submitGuessBtn = document.getElementById('submitGuessBtn');
@@ -535,6 +540,8 @@ function setupCanvasEvents() {
 
 function sendChatMessage() {
     const chatInput = document.getElementById('chatInput');
+    if (!chatInput) return; // Exit if chat input doesn't exist
+    
     const message = chatInput.value.trim();
     
     if (message) {
@@ -545,6 +552,8 @@ function sendChatMessage() {
 
 function addChatMessage(message) {
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return; // Exit if chat messages container doesn't exist
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = 'chat-message';
     messageDiv.textContent = message;

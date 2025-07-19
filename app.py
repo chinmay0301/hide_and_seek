@@ -241,7 +241,7 @@ def handle_start_game():
     
 
     game.game_started = True
-    game.start_time = datetime.now()
+    game.start_time = datetime.utcnow()
     
     # Generate random positions
     game.hider_position = {
@@ -259,7 +259,7 @@ def handle_start_game():
     emit('game_started', {
         'hider_position': game.hider_position,
         'seeker_position': game.seeker_position,
-        'start_time': game.start_time.isoformat(),
+        'start_time': game.start_time.isoformat() + 'Z',
         'max_time': game.max_time,
         'current_round': game.current_round,
         'hidden_word': game.hidden_word
